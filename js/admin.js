@@ -1,4 +1,5 @@
-const API = 'http://localhost:5000/api';
+// Connect to Vercel Backend
+const API = 'https://backend-mu-sage.vercel.app/api';
 let token = localStorage.getItem('adminToken');
 const PLACEHOLDER_IMAGE = 'assets/profile-placeholder.svg';
 
