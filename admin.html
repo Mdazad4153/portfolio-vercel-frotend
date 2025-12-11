@@ -160,6 +160,8 @@
                         class="fas fa-certificate"></i><span>Certificates</span></a>
                 <a href="#" class="nav-item" data-page="messages"><i
                         class="fas fa-envelope"></i><span>Messages</span><span class="badge" id="msgBadge">0</span></a>
+                <a href="#" class="nav-item" data-page="sessions"><i
+                        class="fas fa-shield-alt"></i><span>Sessions</span></a>
             </nav>
             <div class="sidebar-footer">
                 <button class="btn-logout" id="logoutBtn"><i
@@ -484,6 +486,23 @@
                     </div>
                     <div class="items-list" id="messagesList"></div>
                 </div>
+
+                <!-- Sessions Page -->
+                <div id="sessionsPage" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-shield-alt"></i> Active Sessions</h3>
+                            <button class="btn btn-danger btn-sm" onclick="logoutOtherSessions()">
+                                <i class="fas fa-sign-out-alt"></i> Logout All Devices
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="sessionsList">
+                                <!-- Sessions loaded cards here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -578,6 +597,34 @@
                 </button>
                 <button class="btn btn-danger" id="resumeRemoveConfirmBtn">
                     <i class="fas fa-trash"></i> Remove Resume
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Session Logout Confirmation Modal -->
+    <div class="delete-confirm-modal" id="sessionLogoutModal">
+        <div class="delete-confirm-container">
+            <div class="delete-confirm-header">
+                <div class="delete-confirm-icon" style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);">
+                    <i class="fas fa-sign-out-alt" style="color: white;"></i>
+                </div>
+                <div class="delete-confirm-header-text">
+                    <h3>Logout Device?</h3>
+                    <p>This will end the active session for this device.</p>
+                </div>
+            </div>
+            <div class="delete-confirm-body">
+                <p class="delete-confirm-message">
+                    Are you sure you want to logout this device? They will need to sign in again to access the panel.
+                </p>
+            </div>
+            <div class="delete-confirm-footer">
+                <button class="btn btn-outline" id="sessionLogoutCancelBtn">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button class="btn btn-danger" id="sessionLogoutConfirmBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout Device
                 </button>
             </div>
         </div>

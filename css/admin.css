@@ -1,4 +1,4 @@
-/* ===== ADMIN DESIGN SYSTEM (Same as Portfolio) ===== */
+﻿/* ===== ADMIN DESIGN SYSTEM (Same as Portfolio) ===== */
 :root {
     /* Colors - Same as portfolio */
     --primary: #6366f1;
@@ -2278,5 +2278,1099 @@ input:checked+.slider:before {
 
     50% {
         border-color: rgba(239, 68, 68, 0.4);
+    }
+}
+
+/* Sessions Page Styles */
+.sessions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: var(--bg-card);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+}
+
+.session-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.session-item:last-child {
+    border-bottom: none;
+}
+
+.session-info {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.device-icon {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: rgba(var(--primary-rgb), 0.1);
+    border-radius: 50%;
+}
+
+.session-details h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.session-details p {
+    margin: 2px 0 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.current-badge {
+    background: var(--success-color);
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    vertical-align: middle;
+    margin-left: 0.5rem;
+}
+
+/* ===== SESSION MANAGEMENT UI ===== */
+.sessions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.session-item {
+    display: flex;
+    align-items: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    transition: var(--transition-normal);
+}
+
+.session-item:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.session-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-right: 16px;
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+/* Device Colors */
+.session-icon.desktop {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary);
+}
+
+.session-icon.mobile {
+    background: rgba(34, 211, 238, 0.1);
+    color: var(--accent);
+}
+
+.session-icon.apple {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.session-icon.android {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.session-icon.windows {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.session-details {
+    flex: 1;
+}
+
+.session-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+
+.session-meta {
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.session-meta span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.session-badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.session-badge.current {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--success);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.session-actions {
+    margin-left: 16px;
+}
+
+   
+/* ========================================
+   ENHANCED SESSION MANAGEMENT CARDS  
+   ======================================== */
+
+.session-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 16px;
+    transition: all var(--transition-normal);
+    position: relative;
+    overflow: hidden;
+}
+
+.session-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.session-card.current-session {
+    border-color: var(--success);
+    background: linear-gradient(135deg, var(--bg-card) 0%, rgba(16, 185, 129, 0.05) 100%);
+}
+
+.current-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: var(--success);
+    color: white;
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    animation: sessionPulse 2s ease-in-out infinite;
+}
+
+@keyframes sessionPulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
+}
+
+.session-header {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.session-icon-wrapper {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.session-device-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    transition: var(--transition-fast);
+}
+
+.session-device-icon.mobile {
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    color: white;
+}
+
+.session-device-icon.tablet {
+    background: linear-gradient(135deg, #8b5cf6, #a855f7);
+    color: white;
+}
+
+.session-device-icon.desktop {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+}
+
+.session-card:hover .session-device-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.browser-badge {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    border: 2px solid var(--bg-card);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.browser-badge.chrome {
+    background: linear-gradient(135deg, #4285F4, #34A853);
+    color: white;
+}
+
+.browser-badge.firefox {
+    background: linear-gradient(135deg, #FF7139, #E66000);
+    color: white;
+}
+
+.browser-badge.edge {
+    background: linear-gradient(135deg, #0078D7, #00BCF2);
+    color: white;
+}
+
+.browser-badge.safari {
+    background: linear-gradient(135deg, #00A2E8, #52C1FA);
+    color: white;
+}
+
+.browser-badge.opera {
+    background: linear-gradient(135deg, #FF1B2D, #FA3E3E);
+    color: white;
+}
+
+.browser-badge.default {
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+}
+
+.session-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.session-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.session-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    padding: 8px 12px;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-md);
+    transition: var(--transition-fast);
+}
+
+.detail-item:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+.detail-item i {
+    width: 16px;
+    text-align: center;
+    color: var(--primary);
+    opacity: 0.6;
+}
+
+.detail-item strong {
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-right: 4px;
+}
+
+.session-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.session-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+}
+
+.session-status.active {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.session-status.active i {
+    animation: statusBlink 1.5s ease-in-out infinite;
+}
+
+@keyframes statusBlink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+}
+
+.session-status.inactive {
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+}
+
+.session-loading {
+    text-align: center;
+    padding: 48px 24px;
+}
+
+.session-loading p {
+    margin-top: 16px;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+/* Session Card Layout Improvements */
+.session-details-grid {
+    margin-top: 16px;
+}
+
+.detail-item {
+    min-height: 36px;
+}
+
+.detail-item span {
+    flex: 1;
+    word-break: break-word;
+}
+
+.session-card {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.browser-badge {
+    z-index: 2;
+}
+
+.btn-danger {
+    background: var(--error);
+    color: white;
+    border: none;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+
+/* Compact Session Cards */
+.session-card {
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.session-header {
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.session-device-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+}
+
+.browser-badge {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+    bottom: -2px;
+    right: -2px;
+}
+
+.session-title {
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.session-details-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.detail-item {
+    padding: 6px 10px;
+    font-size: 12px;
+    min-height: auto;
+}
+
+.detail-item i {
+    font-size: 11px;
+}
+
+.session-footer {
+    margin-top: 12px;
+    padding-top: 12px;
+}
+
+.session-status {
+    font-size: 12px;
+    padding: 4px 10px;
+}
+
+.btn-sm {
+    padding: 6px 14px;
+    font-size: 12px;
+}
+
+.current-badge {
+    top: 12px;
+    right: 12px;
+    padding: 4px 10px;
+    font-size: 11px;
+    gap: 4px;
+}
+
+/* Enhanced Current Session Highlight */
+.session-card.current-session {
+    border-color: var(--success);
+    background: linear-gradient(135deg, var(--bg-card) 0%, rgba(16, 185, 129, 0.08) 100%);
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.15);
+}
+
+.session-card.current-session .session-title {
+    color: var(--success);
+}
+
+.session-card.current-session .session-device-icon {
+    border: 2px solid var(--success);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+/* Non-current sessions - slightly dimmed */
+.session-card:not(.current-session) {
+    opacity: 0.85;
+}
+
+.session-card:not(.current-session):hover {
+    opacity: 1;
+}
+
+/* Responsive - Mobile */
+@media (max-width: 768px) {
+    .session-details-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* ========================================
+   NEW CLEAN SESSION CARD DESIGN
+   ======================================== */
+
+
+/* Sessions Grid - 2 columns on desktop */
+#sessionsList {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+@media (max-width: 1024px) {
+    #sessionsList {
+        grid-template-columns: 1fr;
+    }
+}
+
+.session-card-new {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 18px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.session-card-new:hover {
+    border-color: var(--primary);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.session-card-new.is-current {
+    border-color: var(--success);
+    background: linear-gradient(135deg, var(--bg-card) 0%, rgba(16, 185, 129, 0.03) 100%);
+}
+
+.badge-current {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: var(--success);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+}
+
+.session-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.session-device {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+}
+
+.device-icon-large {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+}
+
+.device-icon-large.mobile {
+    background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+    color: white;
+}
+
+.device-icon-large.tablet {
+    background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+    color: white;
+}
+
+.device-icon-large.desktop {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    color: white;
+}
+
+.device-info-text {
+    flex: 1;
+}
+
+.device-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 4px 0;
+    line-height: 1.3;
+}
+
+.device-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.session-details-clean {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.detail-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px;
+    background: var(--bg-elevated);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    transition: all 0.2s ease;
+}
+
+.detail-row:hover {
+    background: var(--primary-light);
+    border-color: var(--primary);
+}
+
+.detail-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.detail-label i {
+    width: 14px;
+    font-size: 12px;
+    color: var(--primary);
+    opacity: 0.7;
+}
+
+.detail-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+.session-actions-new {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 20px;
+    border-top: 2px solid var(--border);
+}
+
+.status-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.status-badge.status-active {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--success);
+    border: 2px solid var(--success);
+}
+
+.status-badge.status-active i {
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.6;
+        transform: scale(1.2);
+    }
+}
+
+.status-badge.status-inactive {
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    border: 2px solid var(--border);
+}
+
+.btn-logout-session {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    background: var(--error);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-logout-session:hover {
+    background: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
+}
+
+.btn-current-device {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+    .session-details-clean {
+        grid-template-columns: 1fr;
+    }
+
+    .session-top {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .badge-current {
+        position: static;
+        margin-bottom: 16px;
+        align-self: flex-start;
+    }
+
+    .device-icon-large {
+        width: 64px;
+        height: 64px;
+        font-size: 28px;
+    }
+
+    .device-name {
+        font-size: 18px;
+    }
+
+    .session-actions-new {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .btn-logout-session,
+    .btn-current-device {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+
+/* Mobile Improvements for Sessions */
+@media (max-width: 640px) {
+
+    /* Sessions Grid - 2 columns on desktop */
+    #sessionsList {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+    }
+
+    @media (max-width: 1024px) {
+        #sessionsList {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .session-card-new {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .badge-current {
+        position: static;
+        margin-bottom: 16px;
+        width: fit-content;
+    }
+
+    .session-top {
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+    }
+
+    .session-device {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        width: 100%;
+    }
+
+    .device-icon-large {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+    }
+
+    .device-info-text {
+        width: 100%;
+    }
+
+    .device-name {
+        font-size: 18px;
+        word-break: break-word;
+    }
+
+    .device-subtitle {
+        font-size: 14px;
+    }
+
+    .session-details-clean {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .detail-row {
+        padding: 12px;
+    }
+
+    .detail-label {
+        font-size: 12px;
+    }
+
+    .detail-value {
+        font-size: 14px;
+        word-break: break-word;
+    }
+
+    .session-actions-new {
+        flex-direction: column;
+        gap: 12px;
+        padding-top: 16px;
+    }
+
+    .status-badge {
+        width: 100%;
+        justify-content: center;
+        padding: 10px 16px;
+    }
+
+    .btn-logout-session,
+    .btn-current-device {
+        width: 100%;
+        justify-content: center;
+        padding: 12px 20px;
+    }
+}
+
+/* Extra small mobile (iPhone SE, etc) */
+@media (max-width: 375px) {
+
+    .session-card-new {
+        padding: 16px;
+    }
+
+    .device-icon-large {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+    }
+
+    .device-name {
+        font-size: 16px;
+    }
+
+    .device-subtitle {
+        font-size: 13px;
+    }
+
+    .detail-row {
+        padding: 10px;
+    }
+
+    .detail-value {
+        font-size: 13px;
+    }
+}
+
+
+/* COMPACT MOBILE DESIGN - Override previous mobile styles */
+@media (max-width: 640px) {
+
+    .session-card-new {
+        padding: 16px !important;
+        margin-bottom: 16px !important;
+        border-radius: 12px !important;
+    }
+
+    .badge-current {
+        padding: 6px 12px !important;
+        font-size: 11px !important;
+        margin-bottom: 12px !important;
+    }
+
+    .session-top {
+        margin-bottom: 16px !important;
+        padding-bottom: 16px !important;
+    }
+
+    .device-icon-large {
+        width: 48px !important;
+        height: 48px !important;
+        font-size: 22px !important;
+        border-radius: 12px !important;
+    }
+
+    .device-name {
+        font-size: 15px !important;
+        margin-bottom: 4px !important;
+    }
+
+    .device-subtitle {
+        font-size: 12px !important;
+    }
+
+    .session-details-clean {
+        gap: 10px !important;
+    }
+
+    .detail-row {
+        padding: 10px 12px !important;
+        border-radius: 8px !important;
+    }
+
+    .detail-label {
+        font-size: 10px !important;
+        margin-bottom: 4px !important;
+    }
+
+    .detail-label i {
+        width: 14px !important;
+        font-size: 11px !important;
+    }
+
+    .detail-value {
+        font-size: 13px !important;
+        font-weight: 500 !important;
+    }
+
+    .session-actions-new {
+        gap: 10px !important;
+        padding-top: 12px !important;
+    }
+
+    .status-badge {
+        padding: 8px 14px !important;
+        font-size: 12px !important;
+        border-radius: 16px !important;
+    }
+
+    .btn-logout-session,
+    .btn-current-device {
+        padding: 10px 18px !important;
+        font-size: 13px !important;
+        border-radius: 8px !important;
+    }
+
+    .btn-logout-session i,
+    .btn-current-device i {
+        font-size: 12px !important;
+    }
+}
+
+@media (max-width: 375px) {
+
+    .session-card-new {
+        padding: 14px !important;
+    }
+
+    .device-icon-large {
+        width: 44px !important;
+        height: 44px !important;
+        font-size: 20px !important;
+    }
+
+    .device-name {
+        font-size: 14px !important;
+    }
+
+    .detail-row {
+        padding: 8px 10px !important;
+    }
+
+    .detail-value {
+        font-size: 12px !important;
     }
 }

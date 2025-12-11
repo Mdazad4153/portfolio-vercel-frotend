@@ -653,7 +653,10 @@ select {
   color: var(--text-secondary);
 }
 
-.about-text strong {
+.about-text b,
+.about-text strong,
+.hero-desc b,
+.hero-desc strong {
   color: var(--primary);
   font-weight: 600;
 }

@@ -1,11 +1,11 @@
-const API = 'https://backend-mu-sage.vercel.app/api';
+// Connect to Local Backend
+const API = 'http://localhost:5000/api';
 
 // State
 let allSkills = [], allProjects = [], allServices = [], allCerts = [];
 let skillsExpanded = false, projectsExpanded = false, servicesExpanded = false, certsExpanded = false;
 const INITIAL_COUNT = 6;
 
-// Elements
 // Elements
 const typingText = document.getElementById('typingText');
 let texts = ['Web Developer', 'CSE Student', 'AI Enthusiast'];
@@ -34,8 +34,8 @@ function hideLoader() {
   if (loader) {
     setTimeout(() => {
       loader.classList.add('hidden');
-      setTimeout(() => loader.style.display = 'none', 500);
-    }, 300);
+      setTimeout(() => loader.style.display = 'none', 300);
+    }, 100);
   }
 }
 
@@ -333,6 +333,7 @@ function renderSkills(filter = 'all') {
   };
 
 
+  let html = '';
   if (toShow.length === 0) {
     html = `<div class="empty-state">
       <i class="fas fa-code" style="font-size: 24px; margin-bottom: 12px; display: block;"></i>
@@ -408,7 +409,7 @@ function renderProjects() {
     html = toShow.map(p => `
       <div class="project-card ${p.featured ? 'featured' : ''}">
         <div class="project-img">
-          ${p.image ? `<img src="${API.replace('/api', '')}${p.image}" alt="${p.title}">` : `<div class="project-placeholder"><i class="fas fa-folder-open"></i></div>`}
+          ${p.image ? `<img src="${p.image.startsWith('http') ? p.image : API.replace('/api', '') + p.image}" alt="${p.title}">` : `<div class="project-placeholder"><i class="fas fa-folder-open"></i></div>`}
           ${p.featured ? '<span class="featured-badge"><i class="fas fa-star"></i> Featured</span>' : ''}
         </div>
         <div class="project-content">
@@ -534,9 +535,18 @@ async function handleContact(e) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: form.name.value, email: form.email.value, subject: form.subject.value, message: form.message.value })
     });
-    showToast(res.ok ? 'Message sent! ✨' : 'Failed to send');
-    if (res.ok) form.reset();
-  } catch { showToast('Connection error'); }
+
+    if (res.ok) {
+      showToast('Message sent! ✨');
+      form.reset();
+    } else {
+      const error = await res.json();
+      showToast(error.message || 'Failed to send');
+    }
+  } catch (err) {
+    console.error('Contact form error:', err);
+    showToast('Connection error');
+  }
 
   btn.disabled = false;
   btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
@@ -617,7 +627,7 @@ function initScrollReveal() {
     revealObserver.observe(el);
   });
 }
-setTimeout(initScrollReveal, 500);
+setTimeout(initScrollReveal, 100);
 
 // 3. COPY EMAIL ON CLICK
 document.addEventListener('click', async (e) => {

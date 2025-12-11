@@ -1,5 +1,6 @@
-// Connect to Vercel Backend
-const API = 'https://backend-mu-sage.vercel.app/api';
+const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5000/api'
+  : 'https://backend-mu-sage.vercel.app/api';
 let token = localStorage.getItem('adminToken');
 const PLACEHOLDER_IMAGE = 'assets/profile-placeholder.svg';
 
@@ -477,6 +478,7 @@ async function loadAllData() {
   loadServices();
   loadCertificates();
   loadMessages();
+  loadSessions(); // Load active sessions
 }
 
 async function loadStats() {
@@ -726,11 +728,15 @@ async function handleResumeUpload(e) {
       console.log('✅ Resume uploaded:', data.resumeUrl);
     } else {
       const err = await res.json();
-      showToast('❌ ' + (err.message || 'Upload failed'));
+      console.error('❌ Resume upload failed:', err);
+      console.error('Status:', res.status);
+      console.error('Error details:', JSON.stringify(err, null, 2));
+      showToast('❌ ' + (err.message || err.error || 'Upload failed'));
     }
   } catch (error) {
     console.error('Resume upload error:', error);
-    showToast('❌ Connection error');
+    console.error('Error stack:', error.stack);
+    showToast('❌ Server error');
   }
 
   e.target.value = '';
@@ -2053,3 +2059,587 @@ window.hideKeyboardShortcuts = hideKeyboardShortcuts;
 window.exportAllData = exportAllData;
 window.extendSession = extendSession;
 window.dismissSessionWarning = dismissSessionWarning;
+
+// ================================
+// SESSION MANAGEMENT (NEW)
+// ================================
+
+async function loadSessionsOld() {
+  const tbody = document.getElementById('sessionsList');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="4" class="text-center"><div class="loading-spinner"></div> Loading sessions...</td></tr>';
+
+  try {
+    const res = await fetch(`${API}/auth/sessions`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!res.ok) {
+      if (res.status === 404) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Session tracking not enabled yet.</td></tr>';
+        return;
+      }
+      throw new Error('Failed to fetch sessions');
+    }
+
+    const sessions = await res.json();
+
+    if (!Array.isArray(sessions) || sessions.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No other active sessions found.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = sessions.map(s => {
+      const isCurrent = (s.device_info && s.device_info.includes('Unknown')) ? '' : '';
+      return `
+      <tr>
+        <td>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <i class="fas ${getDeviceIcon(s.device_info)} fa-lg ${isCurrent ? 'text-primary' : 'text-secondary'}"></i>
+                <div style="display:flex; flex-direction:column;">
+                    <span style="font-weight:500;">${s.device_info || 'Unknown Device'}</span>
+                    <small style="color:var(--text-muted); font-size:0.8em;">${s.user_agent ? s.user_agent.substring(0, 40) + '...' : ''}</small>
+                </div>
+            </div>
+        </td>
+        <td>${s.ip_address || 'Unknown IP'}</td>
+        <td>${new Date(s.last_active).toLocaleString()}</td>
+        <td>
+            <button class="btn btn-sm btn-outline-danger" onclick="revokeSession('${s.id}')" title="Revoke Access">
+                <i class="fas fa-times"></i> Revoke
+            </button>
+        </td>
+      </tr>
+    `}).join('');
+
+  } catch (error) {
+    console.error('Error loading sessions:', error);
+    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">Error loading sessions: ${error.message}</td></tr>`;
+  }
+}
+
+function getDeviceIconOld(device) {
+  if (!device) return 'fa-desktop';
+  const d = device.toLowerCase();
+  if (d.includes('iphone') || d.includes('ios') || d.includes('mobile')) return 'fa-mobile-alt';
+  if (d.includes('android')) return 'fa-android';
+  if (d.includes('mac') || d.includes('macintosh')) return 'fa-apple';
+  if (d.includes('windows')) return 'fa-windows';
+  if (d.includes('linux')) return 'fa-linux';
+  return 'fa-desktop';
+}
+
+// Session Logout Modal Logic
+let sessionToDeleteId = null;
+
+function setupLogoutModal() {
+  const modal = document.getElementById('sessionLogoutModal');
+  if (!modal) return;
+
+  // Remove existing listeners to avoid duplicates if re-run (though simplified here)
+  // Actually simpler to just define global handler? No, closures.
+  // We'll rely on this running once.
+
+  const confirmBtn = document.getElementById('sessionLogoutConfirmBtn');
+  const cancelBtn = document.getElementById('sessionLogoutCancelBtn');
+
+  if (confirmBtn) {
+    // Clone to remove old listeners if any
+    const newBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+
+    newBtn.addEventListener('click', async () => {
+      if (!sessionToDeleteId) return;
+
+      newBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
+      newBtn.disabled = true;
+
+      try {
+        const res = await fetch(`${API}/auth/sessions/${sessionToDeleteId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+          showToast('Device logged out successfully');
+          loadSessions();
+          modal.classList.remove('active');
+        } else {
+          const data = await res.json();
+          showToast(data.message || 'Failed to logout');
+        }
+      } catch (e) {
+        showToast('Error: ' + e.message);
+      } finally {
+        newBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout Device';
+        newBtn.disabled = false;
+      }
+    });
+  }
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+      modal.classList.remove('active');
+      sessionToDeleteId = null;
+    });
+  }
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.classList.remove('active');
+  });
+}
+
+// Initialize listeners
+setupLogoutModal();
+
+async function revokeSession(id) {
+  sessionToDeleteId = id;
+  const modal = document.getElementById('sessionLogoutModal');
+  if (modal) {
+    modal.classList.add('active');
+  } else {
+    // Fallback
+    if (confirm('Are you sure you want to logout this device?')) {
+      try {
+        await fetch(`${API}/auth/sessions/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        showToast('Device logged out');
+        loadSessions();
+      } catch (e) { showToast('Error'); }
+    }
+  }
+}
+
+async function logoutOtherSessions() {
+  if (!confirm('Are you sure you want to logout from ALL devices? This includes your current session.')) return;
+
+  try {
+    const res = await fetchAuth('/auth/sessions?all=true', {
+      method: 'DELETE'
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      showToast(data.message || 'Logged out from all devices');
+      // Force local logout
+      setTimeout(() => {
+        handleLogout();
+      }, 1000);
+    } else {
+      showToast(data.message || 'Failed to logout all devices', 'error');
+    }
+  } catch (error) {
+    console.error('Logout All Error:', error);
+    showToast('Error logging out devices', 'error');
+  }
+}
+
+// Export functions to window
+
+
+// ================================
+// NEW CARD-BASED SESSION UI
+// ================================
+
+async function loadSessions() {
+  const container = document.getElementById('sessionsList');
+  if (!container) return;
+
+  // Loading state with skeleton
+  container.innerHTML = `
+    <div class="session-loading">
+      <div class="loading-spinner"></div>
+      <p>Loading active sessions...</p>
+    </div>
+  `;
+
+  try {
+    const res = await fetch(`${API}/auth/sessions`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!res.ok) {
+      if (res.status === 404) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-ghost fa-3x mb-3"></i>
+            <p>Session tracking not enabled yet.</p>
+          </div>
+        `;
+        return;
+      }
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `Server Error (${res.status})`);
+    }
+
+    const sessions = await res.json();
+
+    if (!Array.isArray(sessions) || sessions.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-shield-alt fa-3x mb-3"></i>
+          <p>No active sessions found</p>
+          <small>You'll see all your active devices here</small>
+        </div>
+      `;
+      return;
+    }
+
+    // Get current token hash to identify current session
+    const currentTokenHash = await getCurrentTokenHash();
+
+    // Render enhanced session cards
+    container.innerHTML = sessions.map(session => {
+      // Parse device info - handle both old string format and new object format
+      let deviceInfo;
+
+      if (typeof session.device_info === 'object' && session.device_info !== null) {
+        // New format - already an object
+        deviceInfo = session.device_info;
+      } else if (typeof session.device_info === 'string') {
+        // Old format - parse string to extract info
+        deviceInfo = parseOldDeviceInfo(session.device_info, session.user_agent);
+      } else {
+        // Fallback - parse from user agent
+        deviceInfo = parseOldDeviceInfo('Unknown Device', session.user_agent);
+      }
+
+      const isCurrent = session.token_hash === currentTokenHash;
+      const deviceIcon = getDeviceIcon(deviceInfo.deviceType, deviceInfo.browser);
+      const browserBadge = getBrowserBadge(deviceInfo.browser);
+      const timeInfo = getTimeInfo(session.created_at, session.last_active);
+
+      return `
+        <div class="session-card-new ${isCurrent ? 'is-current' : ''}">
+          ${isCurrent ? '<div class="badge-current">✓ This Device</div>' : ''}
+          
+          <div class="session-top">
+            <div class="session-device">
+              <div class="device-icon-large ${deviceInfo.deviceType}">
+                ${deviceIcon}
+              </div>
+              <div class="device-info-text">
+                <h3 class="device-name">${deviceInfo.summary || 'Unknown Device'}</h3>
+                <p class="device-subtitle">${deviceInfo.browser} • ${deviceInfo.os}</p>
+              </div>
+            </div>
+            ${browserBadge}
+          </div>
+          
+          <div class="session-details-clean">
+            <div class="detail-row">
+              <div class="detail-label">
+                <i class="fas fa-globe"></i>
+                <span>Browser</span>
+              </div>
+              <div class="detail-value">${deviceInfo.browser} ${deviceInfo.browserVersion || ''}</div>
+            </div>
+            
+            <div class="detail-row">
+              <div class="detail-label">
+                <i class="fas fa-laptop"></i>
+                <span>Operating System</span>
+              </div>
+              <div class="detail-value">${deviceInfo.os} ${deviceInfo.osVersion || ''}</div>
+            </div>
+            
+            <div class="detail-row">
+              <div class="detail-label">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>IP Address</span>
+              </div>
+              <div class="detail-value">${maskIP(session.ip_address)}</div>
+            </div>
+            
+            <div class="detail-row">
+              <div class="detail-label">
+                <i class="fas fa-clock"></i>
+                <span>Last Active</span>
+              </div>
+              <div class="detail-value">${timeInfo.lastActive}</div>
+            </div>
+            
+            <div class="detail-row">
+              <div class="detail-label">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Signed In</span>
+              </div>
+              <div class="detail-value">${timeInfo.created}</div>
+            </div>
+            
+            <div class="detail-row">
+              <div class="detail-label">
+                <i class="fas fa-hourglass-half"></i>
+                <span>Session Duration</span>
+              </div>
+              <div class="detail-value">${timeInfo.duration}</div>
+            </div>
+          </div>
+          
+          <div class="session-actions-new">
+            <div class="status-badge ${isCurrent ? 'status-active' : 'status-inactive'}">
+              <i class="fas fa-circle"></i>
+              <span>${isCurrent ? 'Active Now' : 'Active'}</span>
+            </div>
+            ${!isCurrent ? `
+              <button class="btn-logout-session" onclick="revokeSessionWithConfirm('${session.id}')">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout Device
+              </button>
+            ` : `
+              <button class="btn-current-device" disabled>
+                <i class="fas fa-check-circle"></i>
+                Current Device
+              </button>
+            `}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+  } catch (error) {
+    console.error('Error loading sessions:', error);
+    container.innerHTML = `
+      <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong>Error loading sessions:</strong> ${error.message}
+      </div>
+    `;
+  }
+}
+
+// Helper: Get current token hash (for highlighting current session)
+async function getCurrentTokenHash() {
+  if (!token) return null;
+  try {
+    const crypto = window.crypto || window.msCrypto;
+    const encoder = new TextEncoder();
+    const data = encoder.encode(token);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  } catch (e) {
+    return null;
+  }
+}
+
+// Helper: Get device icon based on type and browser
+function getDeviceIcon(deviceType, browser) {
+  const icons = {
+    mobile: '<i class="fas fa-mobile-alt"></i>',
+    tablet: '<i class="fas fa-tablet-alt"></i>',
+    desktop: '<i class="fas fa-desktop"></i>'
+  };
+  return icons[deviceType] || icons.desktop;
+}
+
+// Helper: Get browser badge/icon
+function getBrowserBadge(browser) {
+  const badges = {
+    'Google Chrome': '<div class="browser-badge chrome"><i class="fab fa-chrome"></i></div>',
+    'Mozilla Firefox': '<div class="browser-badge firefox"><i class="fab fa-firefox-browser"></i></div>',
+    'Microsoft Edge': '<div class="browser-badge edge"><i class="fab fa-edge"></i></div>',
+    'Safari': '<div class="browser-badge safari"><i class="fab fa-safari"></i></div>',
+    'Opera': '<div class="browser-badge opera"><i class="fab fa-opera"></i></div>'
+  };
+  return badges[browser] || '<div class="browser-badge default"><i class="fas fa-globe"></i></div>';
+}
+
+// Helper: Mask IP for privacy (show first 2 octets only)
+function maskIP(ip) {
+  if (!ip || ip === 'Unknown') return 'Unknown';
+  if (ip.includes('::1') || ip === '127.0.0.1') return 'Localhost';
+  const parts = ip.split('.');
+  if (parts.length === 4) {
+    return `${parts[0]}.${parts[1]}.***.***`;
+  }
+  return ip.substring(0, 15) + '...';
+}
+
+// Helper: Get formatted time information
+function getTimeInfo(createdAt, lastActive) {
+  const created = new Date(createdAt);
+  const active = new Date(lastActive);
+  const now = new Date();
+
+  return {
+    created: formatTimeAgo(created),
+    lastActive: formatTimeAgo(active),
+    duration: formatDuration(created, now)
+  };
+}
+
+// Helper: Format time ago
+function formatTimeAgo(date) {
+  const seconds = Math.floor((new Date() - date) / 1000);
+
+  if (seconds < 60) return 'Just now';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// Helper: Format duration
+function formatDuration(start, end) {
+  const seconds = Math.floor((end - start) / 1000);
+
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours`;
+
+  const days = Math.floor(seconds / 86400);
+  return `${days} day${days > 1 ? 's' : ''}`;
+}
+
+// Helper: Parse old string-based device_info into proper object format
+function parseOldDeviceInfo(deviceString, userAgent) {
+  if (!userAgent) {
+    return {
+      summary: deviceString || 'Unknown Device',
+      browser: 'Unknown',
+      os: deviceString || 'Unknown',
+      deviceType: 'desktop',
+      browserVersion: '',
+      osVersion: ''
+    };
+  }
+
+  const ua = userAgent.toLowerCase();
+
+  // Detect Browser
+  let browser = 'Unknown';
+  let browserVersion = '';
+
+  if (ua.includes('edg/')) {
+    const match = ua.match(/edg\/([\d.]+)/);
+    browser = 'Edge';
+    browserVersion = match ? match[1].split('.')[0] : '';
+  } else if (ua.includes('chrome/') && !ua.includes('edg')) {
+    const match = ua.match(/chrome\/([\d.]+)/);
+    browser = 'Chrome';
+    browserVersion = match ? match[1].split('.')[0] : '';
+  } else if (ua.includes('firefox/')) {
+    const match = ua.match(/firefox\/([\d.]+)/);
+    browser = 'Firefox';
+    browserVersion = match ? match[1].split('.')[0] : '';
+  } else if (ua.includes('safari/') && !ua.includes('chrome')) {
+    const match = ua.match(/version\/([\d.]+)/);
+    browser = 'Safari';
+    browserVersion = match ? match[1].split('.')[0] : '';
+  } else if (ua.includes('opera') || ua.includes('opr/')) {
+    const match = ua.match(/(?:opera|opr)\/([\d.]+)/);
+    browser = 'Opera';
+    browserVersion = match ? match[1].split('.')[0] : '';
+  }
+
+  // Detect OS
+  let os = 'Unknown';
+  let osVersion = '';
+
+  if (ua.includes('windows nt 10.0')) {
+    os = 'Windows 10/11';
+  } else if (ua.includes('windows nt 6.3')) {
+    os = 'Windows 8.1';
+  } else if (ua.includes('windows nt 6.2')) {
+    os = 'Windows 8';
+  } else if (ua.includes('windows nt 6.1')) {
+    os = 'Windows 7';
+  } else if (ua.includes('windows')) {
+    os = 'Windows';
+  } else if (ua.includes('mac os x')) {
+    const match = ua.match(/mac os x ([\d_]+)/);
+    os = 'macOS';
+    osVersion = match ? match[1].replace(/_/g, '.').split('.').slice(0, 2).join('.') : '';
+  } else if (ua.includes('android')) {
+    const match = ua.match(/android ([\d.]+)/);
+    os = 'Android';
+    osVersion = match ? match[1].split('.')[0] : '';
+  } else if (ua.includes('iphone')) {
+    const match = ua.match(/os ([\d_]+)/);
+    os = 'iOS';
+    osVersion = match ? match[1].replace(/_/g, '.').split('.')[0] : '';
+  } else if (ua.includes('ipad')) {
+    const match = ua.match(/os ([\d_]+)/);
+    os = 'iPadOS';
+    osVersion = match ? match[1].replace(/_/g, '.').split('.')[0] : '';
+  } else if (ua.includes('linux')) {
+    os = 'Linux';
+  } else if (ua.includes('cros')) {
+    os = 'Chrome OS';
+  }
+
+  // Detect Device Type
+  let deviceType = 'desktop';
+  if (ua.includes('mobile') || (ua.includes('android') && !ua.includes('tablet'))) {
+    deviceType = 'mobile';
+  } else if (ua.includes('tablet') || ua.includes('ipad')) {
+    deviceType = 'tablet';
+  }
+
+  // Build summary
+  let emoji = '💻';
+  if (deviceType === 'mobile') emoji = '📱';
+  else if (deviceType === 'tablet') emoji = '📲';
+
+  const summary = `${emoji} ${browser} on ${os}`;
+
+  return {
+    summary,
+    browser,
+    browserVersion,
+    os,
+    osVersion,
+    deviceType,
+    fullUA: userAgent
+  };
+}
+
+
+async function logoutOtherSessions() {
+  if (!confirm('Are you sure you want to logout all OTHER devices? Your current session will stay active.')) return;
+
+  try {
+    const btn = document.querySelector('button[onclick="logoutOtherSessions()"]');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
+    }
+
+    const res = await fetch(`${API}/auth/sessions`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (res.ok) {
+      showToast('✅ All other sessions logged out successfully');
+      loadSessions();
+    } else {
+      const data = await res.json();
+      throw new Error(data.message || 'Failed to logout others');
+    }
+  } catch (error) {
+    showToast(error.message);
+  } finally {
+    const btn = document.querySelector('button[onclick="logoutOtherSessions()"]');
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout All Others';
+    }
+  }
+}
+
+// Wrapper for session revocation with confirm dialog (called from new UI)
+function revokeSessionWithConfirm(id) {
+  revokeSession(id);
+}
+
+// Export functions to window
+window.loadSessions = loadSessions;
+window.revokeSession = revokeSession;
+window.revokeSessionWithConfirm = revokeSessionWithConfirm;
+window.logoutOtherSessions = logoutOtherSessions;
+console.log('Session Management Module Loaded');

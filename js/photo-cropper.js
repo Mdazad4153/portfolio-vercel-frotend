@@ -397,12 +397,15 @@ function uploadCroppedImage() {
     formData.append('profileImage', blob, 'profile.jpg');
 
     try {
-      const API_URL = 'http://localhost:5000/api';
+      // Use API from admin.js (dynamically set based on environment)
+      const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:5000/api'
+        : 'https://backend-mu-sage.vercel.app/api';
 
       const token = localStorage.getItem('adminToken');
-      console.log('Uploading cropped image to:', `${API_URL}/profile/image`);
+      console.log('Uploading cropped image to:', `${API}/profile/image`);
 
-      const res = await fetch(`${API_URL}/profile/image`, {
+      const res = await fetch(`${API}/profile/image`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
