@@ -1,7 +1,5 @@
-// Connect to Backend (dynamic based on environment)
-const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:5000/api'
-  : 'https://backend-mu-sage.vercel.app/api';
+// Connect to Production Backend
+const API = 'https://backend-mu-sage.vercel.app/api';
 
 // State
 let allSkills = [], allProjects = [], allServices = [], allCerts = [];
@@ -22,7 +20,125 @@ document.addEventListener('DOMContentLoaded', async () => {
   initTheme();
   trackVisit(); // Silent analytics
   hideLoader(); // Smooth loading
+  // Initialize Supabase Realtime AFTER page loads (delayed for performance)
+  setTimeout(initRealtimeUpdates, 2000);
 });
+
+// ===========================================
+// SUPABASE REALTIME - Live Updates from Admin
+// ===========================================
+
+function initRealtimeUpdates(retryCount = 0) {
+  // Check if realtime module is loaded (it loads async/defer)
+  if (typeof subscribeToMainPageUpdates !== 'function') {
+    // Retry up to 5 times with 1 second delay
+    if (retryCount < 5) {
+      console.log(`⏳ Waiting for Supabase Realtime... (attempt ${retryCount + 1})`);
+      setTimeout(() => initRealtimeUpdates(retryCount + 1), 1000);
+      return;
+    }
+    console.warn('⚠️ Supabase Realtime module not available');
+    return;
+  }
+
+  // Subscribe to all portfolio data changes
+  subscribeToMainPageUpdates({
+    // When profile is updated (name, bio, photo, etc.)
+    onProfileUpdate: (payload) => {
+      console.log('🔄 Reloading profile due to real-time update');
+      showRealtimeNotification('Profile updated');
+      loadProfile();
+    },
+
+    // When skills are updated
+    onSkillsUpdate: (payload) => {
+      console.log('🔄 Reloading skills due to real-time update');
+      showRealtimeNotification('Skills updated');
+      loadSkills();
+    },
+
+    // When projects are updated
+    onProjectsUpdate: (payload) => {
+      console.log('🔄 Reloading projects due to real-time update');
+      showRealtimeNotification('Projects updated');
+      loadProjects();
+    },
+
+    // When education is updated
+    onEducationUpdate: (payload) => {
+      console.log('🔄 Reloading education due to real-time update');
+      showRealtimeNotification('Education updated');
+      loadEducation();
+    },
+
+    // When services are updated
+    onServicesUpdate: (payload) => {
+      console.log('🔄 Reloading services due to real-time update');
+      showRealtimeNotification('Services updated');
+      loadServices();
+    },
+
+    // When certificates are updated
+    onCertificatesUpdate: (payload) => {
+      console.log('🔄 Reloading certificates due to real-time update');
+      showRealtimeNotification('Certificates updated');
+      loadCertificates();
+    }
+  });
+
+  console.log('🚀 Real-time updates enabled - Admin changes will reflect instantly!');
+}
+
+// Show subtle notification for real-time updates
+function showRealtimeNotification(message) {
+  // Create or update a subtle indicator
+  let indicator = document.getElementById('realtimeIndicator');
+  if (!indicator) {
+    indicator = document.createElement('div');
+    indicator.id = 'realtimeIndicator';
+    indicator.style.cssText = `
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: slideInRight 0.3s ease;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    `;
+    document.body.appendChild(indicator);
+
+    // Add keyframes for animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideInRight {
+        from { opacity: 0; transform: translateX(100%); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  indicator.innerHTML = `<i class="fas fa-sync-alt" style="animation: spin 1s linear infinite;"></i> ${message}`;
+  indicator.style.opacity = '1';
+  indicator.style.transform = 'translateX(0)';
+
+  // Hide after 2 seconds
+  setTimeout(() => {
+    indicator.style.opacity = '0';
+    indicator.style.transform = 'translateX(100%)';
+  }, 2000);
+}
 
 // Auto update copyright year
 function updateFooterYear() {
@@ -382,7 +498,15 @@ async function loadEducation() {
     return;
   }
 
-  document.getElementById('educationList').innerHTML = edu.map(e => `
+  // Sort by end year descending (newest first), then by start year
+  const sortedEdu = [...edu].sort((a, b) => {
+    const endA = parseInt(a.endYear) || 9999; // "Present" treated as highest
+    const endB = parseInt(b.endYear) || 9999;
+    if (endB !== endA) return endB - endA;
+    return (parseInt(b.startYear) || 0) - (parseInt(a.startYear) || 0);
+  });
+
+  document.getElementById('educationList').innerHTML = sortedEdu.map(e => `
     <div class="edu-card">
       <p class="date"><i class="fas fa-calendar"></i> ${e.startYear} - ${e.endYear}</p>
       <h3>${e.degree} in ${e.field}</h3>
@@ -398,7 +522,16 @@ async function loadProjects() {
 }
 
 function renderProjects() {
-  const toShow = projectsExpanded ? allProjects : allProjects.slice(0, INITIAL_COUNT);
+  // Sort: Featured projects first, then by order/date
+  const sortedProjects = [...allProjects].sort((a, b) => {
+    // Featured first
+    if (a.featured && !b.featured) return -1;
+    if (!a.featured && b.featured) return 1;
+    // Then by order or date
+    return (a.order || 0) - (b.order || 0);
+  });
+
+  const toShow = projectsExpanded ? sortedProjects : sortedProjects.slice(0, INITIAL_COUNT);
 
 
   let html = '';

@@ -1,6 +1,5 @@
-const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:5000/api'
-  : 'https://backend-mu-sage.vercel.app/api';
+// Connect to Production Backend
+const API = 'https://backend-mu-sage.vercel.app/api';
 let token = localStorage.getItem('adminToken');
 const PLACEHOLDER_IMAGE = 'assets/profile-placeholder.svg';
 
@@ -479,6 +478,128 @@ async function loadAllData() {
   loadCertificates();
   loadMessages();
   loadSessions(); // Load active sessions
+  // Initialize Supabase Realtime quickly after dashboard loads
+  setTimeout(initAdminRealtimeUpdates, 500);
+}
+
+// ===========================================
+// SUPABASE REALTIME - Live Updates for Admin
+// ===========================================
+
+function initAdminRealtimeUpdates(retryCount = 0) {
+  // Check if realtime module is loaded (it loads async/defer)
+  if (typeof subscribeToAdminUpdates !== 'function') {
+    // Retry up to 5 times with 1 second delay
+    if (retryCount < 5) {
+      console.log(`⏳ Waiting for Supabase Realtime... (attempt ${retryCount + 1})`);
+      setTimeout(() => initAdminRealtimeUpdates(retryCount + 1), 1000);
+      return;
+    }
+    console.warn('⚠️ Supabase Realtime module not available');
+    return;
+  }
+
+  // Subscribe to admin-relevant updates
+  subscribeToAdminUpdates({
+    // When new contact message arrives from main page
+    onNewMessage: (payload) => {
+      console.log('🔔 New message received in real-time!');
+      showToast('📬 New message received!');
+      playNotificationSound();
+      loadMessages(); // Reload messages list
+      loadStats(); // Update message count in stats
+      updateMessageBadge(); // Update sidebar badge
+    },
+
+    // When message is updated (e.g., marked as read)
+    onMessageUpdate: (payload) => {
+      console.log('📧 Message updated in real-time');
+      loadMessages();
+      loadStats();
+    },
+
+    // When message is deleted
+    onMessageDelete: (payload) => {
+      console.log('🗑️ Message deleted in real-time');
+      loadMessages();
+      loadStats();
+    },
+
+    // When profile is updated (sync across tabs)
+    onProfileUpdate: (payload) => {
+      console.log('🔄 Profile updated in real-time');
+      loadProfile();
+      loadMedia();
+    },
+
+    // When skills are updated
+    onSkillsUpdate: (payload) => {
+      console.log('🔄 Skills updated in real-time');
+      loadSkills();
+      loadStats();
+    },
+
+    // When projects are updated
+    onProjectsUpdate: (payload) => {
+      console.log('🔄 Projects updated in real-time');
+      loadProjects();
+      loadStats();
+    },
+
+    // When education is updated
+    onEducationUpdate: (payload) => {
+      console.log('🔄 Education updated in real-time');
+      loadEducation();
+    },
+
+    // When services are updated
+    onServicesUpdate: (payload) => {
+      console.log('🔄 Services updated in real-time');
+      loadServices();
+    },
+
+    // When certificates are updated
+    onCertificatesUpdate: (payload) => {
+      console.log('🔄 Certificates updated in real-time');
+      loadCertificates();
+      loadStats();
+    }
+  });
+
+  console.log('🚀 Admin Real-time updates enabled - Messages and data will sync instantly!');
+}
+
+// Play notification sound for new messages
+function playNotificationSound() {
+  try {
+    // Create a simple beep sound using Web Audio API
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.value = 800; // Frequency in Hz
+    oscillator.type = 'sine';
+    gainNode.gain.value = 0.1; // Volume
+
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.15); // Duration in seconds
+  } catch (e) {
+    console.log('Audio notification not available');
+  }
+}
+
+// Update message badge in sidebar
+function updateMessageBadge() {
+  const badge = document.getElementById('msgBadge');
+  if (badge) {
+    const currentCount = parseInt(badge.textContent) || 0;
+    badge.textContent = currentCount + 1;
+    badge.classList.add('pulse-animation');
+    setTimeout(() => badge.classList.remove('pulse-animation'), 2000);
+  }
 }
 
 async function loadStats() {
