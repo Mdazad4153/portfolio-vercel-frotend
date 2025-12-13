@@ -12,21 +12,35 @@
 // Use the 'anon' public key (NOT service_role key!)
 
 // Your Supabase Project URL (MUST MATCH YOUR BACKEND .env)
-const SUPABASE_URL = 'https://rihgzpvuhopywaevscmk.supabase.co';
+// Check if already defined by supabase-auth.js (avoid duplicate const error)
+const SUPABASE_REALTIME_URL = window.SUPABASE_URL || 'https://rihgzpvuhopywaevscmk.supabase.co';
 
 // Your Supabase Anon Key (Public - safe to use in frontend)
 // Get this from: Supabase Dashboard → Settings → API → anon public
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpaGd6cHZ1aG9weXdhZXZzY21rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4MjcxODEsImV4cCI6MjA3NDQwMzE4MX0.7_mpVwbmvl21EQ6fFQPcwwPzU4Hkp68gFy-Ns7-qXiE';
+const SUPABASE_REALTIME_KEY = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpaGd6cHZ1aG9weXdhZXZzY21rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4MjcxODEsImV4cCI6MjA3NDQwMzE4MX0.7_mpVwbmvl21EQ6fFQPcwwPzU4Hkp68gFy-Ns7-qXiE';
 
 // Initialize Supabase Client
 let supabaseClient = null;
 let mainPageChannel = null;    // Channel for main page updates
 let adminPageChannel = null;   // Channel for admin page updates (separate!)
 
+
 // Initialize Supabase when the script loads
+// Reuses auth client if already exists to avoid "Multiple GoTrueClient" warning
 function initSupabase() {
+    // If already initialized, return
+    if (supabaseClient) return true;
+
+    // Try to reuse the auth client if it exists (avoids duplicate client warning)
+    if (typeof supabaseAuthClient !== 'undefined' && supabaseAuthClient) {
+        supabaseClient = supabaseAuthClient;
+        console.log('✅ Supabase Realtime initialized (sharing auth client)');
+        return true;
+    }
+
+    // Otherwise create new client
     if (typeof supabase !== 'undefined' && supabase.createClient) {
-        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        supabaseClient = supabase.createClient(SUPABASE_REALTIME_URL, SUPABASE_REALTIME_KEY);
         console.log('✅ Supabase Realtime initialized');
         return true;
     } else {
@@ -144,6 +158,14 @@ function subscribeToAdminUpdates(callbacks = {}) {
             (payload) => {
                 console.log('📡 Message deleted in real-time');
                 if (callbacks.onMessageDelete) callbacks.onMessageDelete(payload);
+            }
+        )
+        // Session changes (login/logout from any device)
+        .on('postgres_changes',
+            { event: '*', schema: 'public', table: 'admin_sessions' },
+            (payload) => {
+                console.log('📡 Session changed in real-time:', payload.eventType);
+                if (callbacks.onSessionChange) callbacks.onSessionChange(payload);
             }
         )
         // Profile changes (for media section sync)

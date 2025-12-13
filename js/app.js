@@ -1,4 +1,4 @@
-// Connect to Production Backend
+// Connect to Production Backend (Vercel)
 const API = 'https://backend-mu-sage.vercel.app/api';
 
 // State
@@ -895,3 +895,458 @@ window.addEventListener('beforeunload', () => {
 
 console.log('🚀 Portfolio loaded with professional features!');
 console.log('💡 Tips: Use ↑↓ arrows to navigate, H for home, C for contact');
+
+// ===========================================
+// MOBILE-FRIENDLY FEATURES & SECTION HELPERS
+// ===========================================
+
+// 13. DOUBLE TAP TO SCROLL TOP (Mobile)
+let lastTap = 0;
+document.addEventListener('touchend', (e) => {
+  const now = Date.now();
+  if (now - lastTap < 300 && e.target.closest('#navbar')) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  lastTap = now;
+});
+
+// 14. TOUCH RIPPLE EFFECT ON BUTTONS (Mobile)
+document.addEventListener('touchstart', (e) => {
+  const btn = e.target.closest('button, .btn, .nav-link');
+  if (btn && !btn.querySelector('.ripple')) {
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    ripple.style.cssText = `
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 50%;
+      transform: scale(0);
+      animation: rippleEffect 0.4s ease-out;
+      pointer-events: none;
+    `;
+    btn.style.position = 'relative';
+    btn.style.overflow = 'hidden';
+    btn.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 400);
+  }
+}, { passive: true });
+
+// 15. VIBRATION FEEDBACK ON BUTTON CLICK (Mobile)
+function vibrateOnClick() {
+  if ('vibrate' in navigator) {
+    navigator.vibrate(10); // 10ms subtle vibration
+  }
+}
+document.addEventListener('click', (e) => {
+  if (e.target.closest('button, .btn')) {
+    vibrateOnClick();
+  }
+});
+
+// 16. GET CURRENT SECTION (Utility)
+function getCurrentSection() {
+  const sections = ['hero', 'about', 'skills', 'education', 'portfolio', 'services', 'certificates', 'contact'];
+  for (const id of sections) {
+    const el = document.getElementById(id);
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      if (rect.top <= 150 && rect.bottom > 150) {
+        return id;
+      }
+    }
+  }
+  return 'hero';
+}
+
+// 17. SCROLL TO SECTION (Utility)
+function scrollToSection(sectionId) {
+  const el = document.getElementById(sectionId);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth' });
+    return true;
+  }
+  return false;
+}
+
+// 18. GET SKILLS COUNT BY CATEGORY
+function getSkillsCount() {
+  const counts = {};
+  allSkills.forEach(s => {
+    counts[s.category] = (counts[s.category] || 0) + 1;
+  });
+  return { total: allSkills.length, byCategory: counts };
+}
+
+// 19. SEARCH PROJECTS BY TECHNOLOGY
+function findProjectsByTech(tech) {
+  const lowerTech = tech.toLowerCase();
+  return allProjects.filter(p =>
+    (p.technologies || []).some(t => t.toLowerCase().includes(lowerTech))
+  );
+}
+
+// 20. GET FEATURED PROJECTS
+function getFeaturedProjectsList() {
+  return allProjects.filter(p => p.featured);
+}
+
+// 21. GET SCROLL PROGRESS (0-100%)
+function getScrollProgress() {
+  const scrollHeight = document.body.scrollHeight - window.innerHeight;
+  return Math.round((window.scrollY / scrollHeight) * 100);
+}
+
+// 22. SCROLL PROGRESS INDICATOR (Updates on scroll)
+window.addEventListener('scroll', () => {
+  const progress = getScrollProgress();
+  // Update any progress bar if exists
+  const progressBar = document.getElementById('scrollProgress');
+  if (progressBar) {
+    progressBar.style.width = `${progress}%`;
+  }
+}, { passive: true });
+
+// 23. DEVICE DETECTION
+const deviceInfo = {
+  isMobile: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
+  isTouch: 'ontouchstart' in window,
+  isIOS: /iPhone|iPad|iPod/i.test(navigator.userAgent),
+  isAndroid: /Android/i.test(navigator.userAgent)
+};
+
+// 24. ORIENTATION CHANGE HANDLER (Mobile)
+window.addEventListener('orientationchange', () => {
+  // Close mobile menu on orientation change
+  document.getElementById('menuBtn')?.classList.remove('active');
+  document.getElementById('navMenu')?.classList.remove('active');
+});
+
+// 25. SWIPE GESTURE DETECTION (Mobile)
+let touchStartX = 0;
+let touchEndX = 0;
+
+document.addEventListener('touchstart', (e) => {
+  touchStartX = e.changedTouches[0].screenX;
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+  touchEndX = e.changedTouches[0].screenX;
+  handleSwipe();
+}, { passive: true });
+
+function handleSwipe() {
+  const swipeThreshold = 100;
+  const diff = touchEndX - touchStartX;
+
+  // Swipe right to close mobile menu
+  if (diff > swipeThreshold) {
+    document.getElementById('navMenu')?.classList.remove('active');
+    document.getElementById('menuBtn')?.classList.remove('active');
+  }
+}
+
+// 26. READING TIME ESTIMATOR (About Section)
+function getReadingTime() {
+  const aboutText = document.getElementById('aboutText')?.textContent || '';
+  const words = aboutText.split(/\s+/).length;
+  const readingSpeed = 200; // words per minute
+  const minutes = Math.ceil(words / readingSpeed);
+  return minutes < 1 ? '< 1 min read' : `${minutes} min read`;
+}
+
+// 27. COUNT TOTAL CERTIFICATES BY ISSUER
+function getCertificateStats() {
+  const byIssuer = {};
+  allCerts.forEach(c => {
+    const issuer = c.issuer || 'Unknown';
+    byIssuer[issuer] = (byIssuer[issuer] || 0) + 1;
+  });
+  return { total: allCerts.length, byIssuer };
+}
+
+// 28. QUICK CONTACT VIA WHATSAPP (if available)
+function openWhatsApp(message = 'Hello! I found your portfolio and wanted to connect.') {
+  const whatsappEl = document.getElementById('whatsapp');
+  if (whatsappEl) {
+    const url = whatsappEl.href;
+    window.open(`${url}?text=${encodeURIComponent(message)}`, '_blank');
+    return true;
+  }
+  return false;
+}
+
+// 29. SHARE SPECIFIC SECTION
+async function shareSection(sectionId) {
+  const section = document.getElementById(sectionId);
+  if (!section) return;
+
+  const url = `${window.location.origin}${window.location.pathname}#${sectionId}`;
+
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: `Md Azad - ${sectionId.charAt(0).toUpperCase() + sectionId.slice(1)}`,
+        url: url
+      });
+    } catch { }
+  } else {
+    await navigator.clipboard.writeText(url);
+    showToast('Link copied! 🔗');
+  }
+}
+
+// 30. NETWORK STATUS DETECTION
+let isOnline = navigator.onLine;
+window.addEventListener('online', () => {
+  isOnline = true;
+  showToast('Back online! 🌐');
+});
+window.addEventListener('offline', () => {
+  isOnline = false;
+  showToast('You are offline 📴');
+});
+
+// 31. PAGE VISIBILITY (Pause animations when hidden)
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    // Could pause animations here
+    console.log('👁️ Page hidden');
+  } else {
+    console.log('👁️ Page visible');
+  }
+});
+
+// 32. SMOOTH SCROLL POLYFILL CHECK
+if (!('scrollBehavior' in document.documentElement.style)) {
+  console.log('⚠️ Smooth scroll not supported, using fallback');
+}
+
+// Expose utility functions globally
+window.getCurrentSection = getCurrentSection;
+window.scrollToSection = scrollToSection;
+window.getSkillsCount = getSkillsCount;
+window.findProjectsByTech = findProjectsByTech;
+window.getFeaturedProjectsList = getFeaturedProjectsList;
+window.getScrollProgress = getScrollProgress;
+window.getReadingTime = getReadingTime;
+window.getCertificateStats = getCertificateStats;
+window.openWhatsApp = openWhatsApp;
+window.shareSection = shareSection;
+window.sharePortfolio = sharePortfolio;
+window.deviceInfo = deviceInfo;
+window.isOnline = () => isOnline;
+
+console.log('📱 Mobile features enabled!');
+if (deviceInfo.isMobile) {
+  console.log('📲 Mobile device detected - touch features active');
+}
+
+// ===========================================
+// ADDITIONAL UTILITY FUNCTIONS
+// ===========================================
+
+// 33. GET PORTFOLIO STATS SUMMARY
+function getPortfolioStats() {
+  return {
+    skills: allSkills.length,
+    projects: allProjects.length,
+    featuredProjects: allProjects.filter(p => p.featured).length,
+    services: allServices.length,
+    certificates: allCerts.length,
+    totalItems: allSkills.length + allProjects.length + allServices.length + allCerts.length
+  };
+}
+
+// 34. COPY TEXT TO CLIPBOARD
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('Copied! 📋');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// 35. COPY EMAIL
+async function copyEmail() {
+  const email = document.getElementById('contactEmail')?.textContent;
+  if (email) {
+    await copyToClipboard(email);
+  }
+}
+
+// 36. COPY PHONE
+async function copyPhone() {
+  const phone = document.getElementById('contactPhone')?.textContent;
+  if (phone) {
+    await copyToClipboard(phone);
+  }
+}
+
+// 37. QUICK CALL (Mobile)
+function quickCall() {
+  const phone = document.getElementById('contactPhone')?.textContent;
+  if (phone && deviceInfo.isMobile) {
+    window.location.href = `tel:${phone.replace(/\s/g, '')}`;
+    return true;
+  }
+  return false;
+}
+
+// 38. SCROLL TO RANDOM PROJECT
+function scrollToRandomProject() {
+  if (allProjects.length > 0) {
+    scrollToSection('projects');
+    showToast(`🎲 ${allProjects.length} projects available!`);
+    return true;
+  }
+  return false;
+}
+
+// 39. GET TIME SINCE PAGE LOAD
+function getTimeSinceLoad() {
+  const seconds = Math.round((Date.now() - sessionStart) / 1000);
+  if (seconds < 60) return `${seconds} seconds`;
+  if (seconds < 3600) return `${Math.round(seconds / 60)} minutes`;
+  return `${Math.round(seconds / 3600)} hours`;
+}
+
+// 40. CHECK IF DARK MODE
+function isDarkMode() {
+  return document.documentElement.dataset.theme === 'dark';
+}
+
+// 41. TOGGLE DARK/LIGHT MODE
+function toggleTheme() {
+  const current = document.documentElement.dataset.theme;
+  const newTheme = current === 'dark' ? 'light' : 'dark';
+  setTheme(newTheme);
+  showToast(`${newTheme === 'dark' ? '🌙' : '☀️'} ${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)} mode`);
+}
+
+// 42. GET ALL TECHNOLOGIES USED
+function getAllTechnologies() {
+  const techs = new Set();
+  allProjects.forEach(p => {
+    (p.technologies || []).forEach(t => techs.add(t));
+  });
+  return Array.from(techs).sort();
+}
+
+// 43. COUNT TOTAL WORDS IN PORTFOLIO
+function getTotalWords() {
+  const aboutText = document.getElementById('aboutText')?.textContent || '';
+  let total = aboutText.split(/\s+/).length;
+
+  allProjects.forEach(p => {
+    total += (p.description || '').split(/\s+/).length;
+  });
+
+  allServices.forEach(s => {
+    total += (s.description || '').split(/\s+/).length;
+  });
+
+  return total;
+}
+
+// 44. GET GREETING BASED ON TIME
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good Morning! ☀️';
+  if (hour < 17) return 'Good Afternoon! 🌤️';
+  if (hour < 21) return 'Good Evening! 🌅';
+  return 'Good Night! 🌙';
+}
+
+// 45. QUICK NAVIGATE (Keyboard Shortcut Helper)
+function goTo(section) {
+  const sections = {
+    home: 'hero',
+    about: 'about',
+    skills: 'skills',
+    edu: 'education',
+    education: 'education',
+    projects: 'projects',
+    portfolio: 'projects',
+    services: 'services',
+    certs: 'certificates',
+    certificates: 'certificates',
+    contact: 'contact'
+  };
+
+  const target = sections[section.toLowerCase()];
+  if (target) {
+    scrollToSection(target);
+    return true;
+  }
+  return false;
+}
+
+// 46. GET RANDOM SKILL
+function getRandomSkill() {
+  if (allSkills.length === 0) return null;
+  return allSkills[Math.floor(Math.random() * allSkills.length)];
+}
+
+// 47. GET SKILLS BY PROFICIENCY (above threshold)
+function getTopSkills(minProficiency = 80) {
+  return allSkills.filter(s => s.proficiency >= minProficiency);
+}
+
+// 48. PRINT PORTFOLIO (Opens Print Dialog)
+function printPortfolio() {
+  window.print();
+}
+
+// 49. GET CONTACT INFO
+function getContactInfo() {
+  return {
+    email: document.getElementById('contactEmail')?.textContent || '',
+    phone: document.getElementById('contactPhone')?.textContent || '',
+    location: document.getElementById('contactLocation')?.textContent || ''
+  };
+}
+
+// 50. HIGHLIGHT SECTION (Visual Pulse Effect)
+function highlightSection(sectionId) {
+  const section = document.getElementById(sectionId);
+  if (section) {
+    section.style.transition = 'box-shadow 0.3s ease';
+    section.style.boxShadow = '0 0 0 4px var(--primary)';
+    setTimeout(() => {
+      section.style.boxShadow = 'none';
+    }, 1500);
+    scrollToSection(sectionId);
+    return true;
+  }
+  return false;
+}
+
+// Expose new utility functions globally
+window.getPortfolioStats = getPortfolioStats;
+window.copyToClipboard = copyToClipboard;
+window.copyEmail = copyEmail;
+window.copyPhone = copyPhone;
+window.quickCall = quickCall;
+window.scrollToRandomProject = scrollToRandomProject;
+window.getTimeSinceLoad = getTimeSinceLoad;
+window.isDarkMode = isDarkMode;
+window.toggleTheme = toggleTheme;
+window.getAllTechnologies = getAllTechnologies;
+window.getTotalWords = getTotalWords;
+window.getGreeting = getGreeting;
+window.goTo = goTo;
+window.getRandomSkill = getRandomSkill;
+window.getTopSkills = getTopSkills;
+window.printPortfolio = printPortfolio;
+window.getContactInfo = getContactInfo;
+window.highlightSection = highlightSection;
+
+// Show greeting on load
+setTimeout(() => {
+  console.log(`${getGreeting()} Welcome to Md Azad's Portfolio!`);
+  console.log(`📊 Stats: ${getPortfolioStats().totalItems} items loaded`);
+}, 1000);
