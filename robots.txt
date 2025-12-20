@@ -1,0 +1,18 @@
+# Md Azad Portfolio - robots.txt
+# https://mdazad.netlify.app
+
+# Allow all search engines
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://mdazad.netlify.app/sitemap.xml
+
+# Disallow admin panel from indexing
+Disallow: /admin.html
+Disallow: /admin
+
+# Allow assets to be indexed
+Allow: /assets/
+Allow: /css/
+Allow: /js/

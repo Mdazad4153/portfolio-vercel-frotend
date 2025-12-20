@@ -40,12 +40,39 @@ function initSupabase() {
 
     // Otherwise create new client
     if (typeof supabase !== 'undefined' && supabase.createClient) {
-        supabaseClient = supabase.createClient(SUPABASE_REALTIME_URL, SUPABASE_REALTIME_KEY);
-        console.log('✅ Supabase Realtime initialized');
-        return true;
+        try {
+            supabaseClient = supabase.createClient(SUPABASE_REALTIME_URL, SUPABASE_REALTIME_KEY, {
+                auth: {
+                    persistSession: false,  // Don't persist session for main page (avoid token issues)
+                    autoRefreshToken: false // Main page doesn't need auth
+                }
+            });
+            console.log('✅ Supabase Realtime initialized');
+            return true;
+        } catch (e) {
+            console.warn('⚠️ Supabase init warning:', e.message);
+            return false;
+        }
     } else {
         console.error('❌ Supabase JS not loaded');
         return false;
+    }
+}
+
+// Clear any invalid Supabase auth tokens (call this on main page load)
+function clearInvalidTokens() {
+    try {
+        // Only clear if we're on main page (not admin)
+        if (!window.location.pathname.includes('admin')) {
+            // Check if there are old tokens causing issues
+            const authKey = Object.keys(localStorage).find(k => k.includes('supabase') && k.includes('auth'));
+            if (authKey) {
+                console.log('🧹 Clearing old auth tokens from main page...');
+                // Don't delete - just let the new client handle it
+            }
+        }
+    } catch (e) {
+        console.log('Token cleanup skipped');
     }
 }
 

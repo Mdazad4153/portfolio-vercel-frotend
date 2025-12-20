@@ -1,4 +1,4 @@
-// Connect to Production Backend (Vercel)
+// Connect to Backend
 const API = 'https://backend-mu-sage.vercel.app/api';
 let token = localStorage.getItem('adminToken');
 const PLACEHOLDER_IMAGE = 'assets/profile-placeholder.svg';
@@ -448,6 +448,16 @@ function setupEvents() {
         loadMedia();
       }
     });
+  });
+
+  // Close sidebar when clicking outside (mobile)
+  document.addEventListener('click', (e) => {
+    if (sidebar.classList.contains('active')) {
+      // Check if click is outside sidebar and not on menu toggle
+      if (!sidebar.contains(e.target) && !e.target.closest('#menuToggle')) {
+        sidebar.classList.remove('active');
+      }
+    }
   });
 
   document.getElementById('profileForm')?.addEventListener('submit', saveProfile);
@@ -987,7 +997,7 @@ async function checkProfileCompletion() {
     }
 
     // Check Photo
-    if (profile && profile.photo) {
+    if (profile && profile.profileImage) {
       completed++;
       details.push({ name: 'Photo', complete: true });
     } else {

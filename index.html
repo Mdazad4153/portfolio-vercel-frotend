@@ -14,6 +14,9 @@
     <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#6366f1">
 
+    <!-- Google Search Console Verification -->
+    <meta name="google-site-verification" content="kiWQ1Dl7mNWH4pG60tKUpdDBf2jlAuCXsntrSniobNk" />
+
     <!-- Open Graph / Social Media -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="Md Azad Ansari - Portfolio">
@@ -32,8 +35,14 @@
     <link rel="canonical" href="https://mdazad.netlify.app">
 
     <title>Md Azad Ansari | CSE Student & Web Developer Portfolio</title>
-    <link rel="icon" href="assets/profile-placeholder.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="assets/profile-placeholder.svg">
+    <!-- Favicon Configuration - Professional Setup -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/android-chrome-512x512.png">
+    <link rel="manifest" href="assets/site.webmanifest">
 
     <!-- Preconnect for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -42,7 +51,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=2.1">
 
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -64,6 +73,20 @@
         "addressCountry": "India"
       }
     }
+    </script>
+
+    <!-- Theme Initialization (Before Page Load) -->
+    <script>
+        // Set theme IMMEDIATELY before page renders
+        (function () {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            if (savedTheme === 'system') {
+                const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.dataset.theme = systemDark ? 'dark' : 'light';
+            } else {
+                document.documentElement.dataset.theme = savedTheme;
+            }
+        })();
     </script>
 </head>
 
@@ -380,7 +403,7 @@
     <!-- Supabase Realtime (Async - doesn't block page load) -->
     <script src="https://unpkg.com/@supabase/supabase-js@2" defer></script>
     <script src="js/supabase-realtime.js" defer></script>
-    <script src="js/app.js"></script>
+    <script src="js/app.js?v=2.0"></script>
 </body>
 
 </html>

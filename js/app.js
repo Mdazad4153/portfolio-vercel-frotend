@@ -1,4 +1,4 @@
-// Connect to Production Backend (Vercel)
+// Connect to Backend
 const API = 'https://backend-mu-sage.vercel.app/api';
 
 // State
@@ -198,6 +198,20 @@ function setupEvents() {
 
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => filterSkills(btn.dataset.filter));
+  });
+
+  // Close mobile menu when clicking outside
+  document.addEventListener('click', (e) => {
+    const menuBtn = document.getElementById('menuBtn');
+    const navMenu = document.getElementById('navMenu');
+
+    if (navMenu.classList.contains('active')) {
+      // Check if click is outside menu and not on menu button
+      if (!navMenu.contains(e.target) && !menuBtn.contains(e.target)) {
+        menuBtn.classList.remove('active');
+        navMenu.classList.remove('active');
+      }
+    }
   });
 }
 
@@ -549,8 +563,8 @@ function renderProjects() {
         </div>
         <div class="project-content">
           <h3>${p.title}</h3>
-          <p>${p.description?.substring(0, 100)}...</p>
-          <div class="project-tags">${(p.technologies || []).slice(0, 4).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+          <p class="project-desc">${p.description || 'No description available.'}</p>
+          <div class="project-tags">${(p.technologies || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
           <div class="project-links">
             ${p.liveUrl && p.liveUrl !== '#' ? `<a href="${p.liveUrl}" target="_blank" class="project-link"><i class="fas fa-external-link-alt"></i> Live</a>` : ''}
             ${p.githubUrl ? `<a href="${p.githubUrl}" target="_blank" class="project-link"><i class="fab fa-github"></i> Code</a>` : ''}
@@ -859,7 +873,9 @@ if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   document.documentElement.style.scrollBehavior = 'auto';
 }
 
-// 10. AUTO-HIDE NAVBAR ON SCROLL DOWN
+// 10. AUTO-HIDE NAVBAR ON SCROLL DOWN (DISABLED - Keep navbar always visible)
+// Uncomment below to enable auto-hide on scroll
+/*
 let lastScrollY = 0;
 window.addEventListener('scroll', () => {
   const navbar = document.getElementById('navbar');
@@ -870,6 +886,7 @@ window.addEventListener('scroll', () => {
   }
   lastScrollY = window.scrollY;
 }, { passive: true });
+*/
 
 // 11. FOCUS TRAP FOR MOBILE MENU
 document.getElementById('navMenu')?.addEventListener('keydown', (e) => {

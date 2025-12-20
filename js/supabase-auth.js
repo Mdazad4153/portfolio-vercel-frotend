@@ -132,12 +132,11 @@ async function supabaseResetPasswordEmail(email) {
 
     let redirectTo;
     if (isLocalhost) {
-        // For local development
-        redirectTo = 'http://localhost:5500/admin.html#type=recovery';
+        // For local development - use current port
+        redirectTo = `${window.location.origin}/admin.html#type=recovery`;
     } else {
-        // For production - UPDATE THIS WITH YOUR ACTUAL FRONTEND URL
-        redirectTo = 'https://your-frontend-domain.com/admin.html#type=recovery';
-        // OR use dynamic: window.location.origin + '/admin.html#type=recovery'
+        // For production - Netlify deployed URL
+        redirectTo = 'https://mdazad.netlify.app/admin.html#type=recovery';
     }
 
     console.log('📧 Sending password reset email to:', email);
